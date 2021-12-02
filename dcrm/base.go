@@ -653,6 +653,16 @@ func CheckRaw(raw string) (string,string,string,interface{},error) {
 	    return "","","",nil,fmt.Errorf("transaction data format error,the lastest segment is not AGREE or DISAGREE")
 	}
 
+	//bug: accept data was not put into list
+	w, err := FindWorker(acceptreq.Key)
+	if err != nil || w == nil {
+	    c1data := acceptreq.Key + "-" + from.Hex()
+	    C1Data.WriteMap(strings.ToLower(c1data),raw)
+	    return "","","",nil,fmt.Errorf("Not Found Worker,Pre-save the accept data.")
+	}
+	time.Sleep(time.Duration(5000000000)) // the time to wait for finishing to write reqaddr cmd data to localdb.
+	//
+
 	exsit,da := GetValueFromPubKeyData(acceptreq.Key)
 	if !exsit {
 	    return "","","",nil,fmt.Errorf("get accept data fail from db in checking raw reqaddr accept data")
@@ -727,6 +737,17 @@ func CheckRaw(raw string) (string,string,string,interface{},error) {
 	    return "","","",nil,fmt.Errorf("transaction data format error,the lastest segment is not AGREE or DISAGREE")
 	}
 
+	//bug: accept data was not put into list
+	w, err := FindWorker(acceptsig.Key)
+	if err != nil || w == nil {
+	    common.Info("===============CheckRaw, it is accept sign tx and Not Found Worker=====================","key ",acceptsig.Key,"from ",from)
+	    c1data := acceptsig.Key + "-" + from.Hex()
+	    C1Data.WriteMap(strings.ToLower(c1data),raw)
+	    return "","","",nil,fmt.Errorf("Not Found Worker,Pre-save the accept data.")
+	}
+	time.Sleep(time.Duration(5000000000)) // the time to wait for finishing to write sign cmd data to localdb.
+	//
+
 	exsit,da := GetValueFromPubKeyData(acceptsig.Key)
 	if !exsit {
 	    return "","","",nil,fmt.Errorf("get accept result from db fail")
@@ -755,6 +776,17 @@ func CheckRaw(raw string) (string,string,string,interface{},error) {
 	if acceptrh.Accept != "AGREE" && acceptrh.Accept != "DISAGREE" {
 	    return "","","",nil,fmt.Errorf("transaction data format error,the lastest segment is not AGREE or DISAGREE")
 	}
+
+	//bug: accept data was not put into list
+	w, err := FindWorker(acceptrh.Key)
+	if err != nil || w == nil {
+	    c1data := acceptrh.Key + "-" + from.Hex()
+	    C1Data.WriteMap(strings.ToLower(c1data),raw)
+	    return "","","",nil,fmt.Errorf("Not Found Worker,Pre-save the accept data.")
+	}
+	time.Sleep(time.Duration(5000000000)) // the time to wait for finishing to write reshare cmd data to localdb.
+
+	//
 
 	exsit,da := GetValueFromPubKeyData(acceptrh.Key)
 	if !exsit {
