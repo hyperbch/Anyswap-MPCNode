@@ -678,7 +678,18 @@ func CheckRaw(raw string) (string,string,string,interface{},error) {
 	    return "","","",nil,fmt.Errorf("transaction data format error,the lastest segment is not AGREE or DISAGREE")
 	}
 
-	exsit,da := GetValueFromPubKeyData(acceptreq.Key)
+	//bug: accept data was not put into list
+        w, err := FindWorker(acceptreq.Key)
+        if err != nil || w == nil {
+		c1data := acceptreq.Key + "-" + from.Hex()
+		C1Data.WriteMap(strings.ToLower(c1data),raw)
+		fmt.Printf("========================Not Found Worker,Pre-save the accept data. key = %v,from = %v======================\n",acceptreq.Key,from.Hex())
+		return "","","",nil,nil
+         }
+         time.Sleep(time.Duration(5000000000)) // the time to wait for finishing to write reqaddr cmd data to localdb.
+         //
+	
+	 exsit,da := GetValueFromPubKeyData(acceptreq.Key)
 	if !exsit {
 	    return "","","",nil,fmt.Errorf("get accept data fail from db in checking raw reqaddr accept data")
 	}
@@ -752,7 +763,19 @@ func CheckRaw(raw string) (string,string,string,interface{},error) {
 	    return "","","",nil,fmt.Errorf("transaction data format error,the lastest segment is not AGREE or DISAGREE")
 	}
 
-	exsit,da := GetValueFromPubKeyData(acceptsig.Key)
+	//bug: accept data was not put into list
+         w, err := FindWorker(acceptsig.Key)
+         if err != nil || w == nil {
+             common.Info("===============CheckRaw, it is accept sign tx and Not Found Worker=====================","key ",acceptsig.Key,"from ",from)
+             c1data := acceptsig.Key + "-" + from.Hex()
+             C1Data.WriteMap(strings.ToLower(c1data),raw)
+		fmt.Printf("========================Not Found Worker,Pre-save the accept data. key = %v,from = %v======================\n",acceptsig.Key,from.Hex())
+             return "","","",nil,nil
+         }
+         time.Sleep(time.Duration(5000000000)) // the time to wait for finishing to write sign cmd data to localdb.
+         //
+	
+	 exsit,da := GetValueFromPubKeyData(acceptsig.Key)
 	if !exsit {
 	    return "","","",nil,fmt.Errorf("get accept result from db fail")
 	}
@@ -781,7 +804,19 @@ func CheckRaw(raw string) (string,string,string,interface{},error) {
 	    return "","","",nil,fmt.Errorf("transaction data format error,the lastest segment is not AGREE or DISAGREE")
 	}
 
-	exsit,da := GetValueFromPubKeyData(acceptrh.Key)
+	//bug: accept data was not put into list
+         w, err := FindWorker(acceptrh.Key)
+         if err != nil || w == nil {
+             c1data := acceptrh.Key + "-" + from.Hex()
+             C1Data.WriteMap(strings.ToLower(c1data),raw)
+		fmt.Printf("========================Not Found Worker,Pre-save the accept data. key = %v,from = %v======================\n",acceptrh.Key,from.Hex())
+             return "","","",nil,nil
+         }
+         time.Sleep(time.Duration(5000000000)) // the time to wait for finishing to write reshare cmd data to localdb.
+
+         //
+	
+	 exsit,da := GetValueFromPubKeyData(acceptrh.Key)
 	if !exsit {
 	    return "","","",nil,fmt.Errorf("get accept result from db fail")
 	}
@@ -1527,6 +1562,11 @@ func GetAllReplyFromGroup(wid int,gid string,rt RpcType,initiator string) []Node
 		    mdss := iter.Value.(string)
 		    _,from,_,txdata,err := CheckRaw(mdss)
 		    if err != nil {
+			iter = iter.Next()
+			continue
+		    }
+
+		    if txdata == nil {
 			iter = iter.Next()
 			continue
 		    }

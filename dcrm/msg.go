@@ -189,6 +189,10 @@ func GetRawReply(l *list.List) map[string]*RawReply {
 	    continue
 	}
 	
+    if txdata == nil {
+	continue
+    }
+
 	req,ok := txdata.(*TxDataReqAddr)
 	if ok {
 	    reply := &RawReply{From:from,Accept:"true",TimeStamp:req.TimeStamp}
@@ -870,6 +874,21 @@ func HandleC1Data(ac *AcceptReqAddrData,key string,workid int) {
 	    c1, exist := C1Data.ReadMap(strings.ToLower(c1data))
 	    if exist {
 		DisAcceptMsg(c1.(string),workid)
+		/////
+		    _,_,_,txdata,err := CheckRaw(c1.(string))
+		    if err == nil {
+			    acceptrh,ok := txdata.(*TxDataAcceptReShare)
+			    if ok {
+				    exsit,da := GetValueFromPubKeyData(acceptrh.Key)
+				    if exsit {
+					ac,ok := da.(*AcceptReShareData)
+					if ok && ac != nil {
+					    SendMsgToDcrmGroup(c1.(string), ac.GroupId)
+					}
+				    }
+			    }
+		    }
+		/////
 		go C1Data.DeleteMap(strings.ToLower(c1data))
 	    }
 	}
@@ -937,6 +956,26 @@ func HandleC1Data(ac *AcceptReqAddrData,key string,workid int) {
 	c1, exist := C1Data.ReadMap(strings.ToLower(c1data))
 	if exist {
 	    DisAcceptMsg(c1.(string),workid)
+	    //////
+	    _,_,_,txdata,err := CheckRaw(c1.(string))
+	    if err == nil {
+		    _,ok := txdata.(*TxDataAcceptReqAddr)
+		    if ok {
+			    SendMsgToDcrmGroup(c1.(string), ac.GroupId)
+		    } else {
+			    acceptsig,ok := txdata.(*TxDataAcceptSign)
+			    if ok {
+				    exsit,da := GetValueFromPubKeyData(acceptsig.Key)
+				    if exsit {
+					ac,ok := da.(*AcceptSignData)
+					if ok && ac != nil {
+					    SendMsgToDcrmGroup(c1.(string), ac.GroupId)
+					}
+				}
+			    }
+		    }
+	    }
+	    //////
 	    go C1Data.DeleteMap(strings.ToLower(c1data))
 	}
     }
@@ -959,6 +998,10 @@ func DisAcceptMsg(raw string,workid int) {
 	return
     }
     
+    if txdata == nil {
+	return
+    }
+
     _,ok := txdata.(*TxDataReqAddr)
     if ok {
 	if Find(w.msg_acceptreqaddrres,raw) {
@@ -1202,6 +1245,12 @@ func InitAcceptData(raw string,workid int,sender string,ch chan interface{}) err
 	return err
     }
     
+    if txdata == nil {
+	res := RpcDcrmRes{Ret: "", Tip: "", Err: fmt.Errorf("check raw fail,txdata is nil")}
+	ch <- res
+	return fmt.Errorf("check raw fail,txdata is nil") 
+    }
+
     req,ok := txdata.(*TxDataReqAddr)
     if ok {
 	common.Info("===============InitAcceptData, check reqaddr raw success==================","raw ",raw,"key ",key,"from ",from,"nonce ",nonce,"txdata ",req)

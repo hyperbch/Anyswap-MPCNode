@@ -656,6 +656,10 @@ func PreGenSignData(raw string) (string, error) {
 	return err.Error(),err
     }
 
+    if txdata == nil {
+	return "",fmt.Errorf("check raw fail,txdata is nil") 
+    }
+
     pre,ok := txdata.(*TxDataPreSignData)
     if !ok {
 	return "check raw fail,it is not *TxDataPreSignData",fmt.Errorf("check raw fail,it is not *TxDataPreSignData")

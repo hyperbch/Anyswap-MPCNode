@@ -94,6 +94,10 @@ func ReShare(raw string) (string, string, error) {
 	return "",err.Error(),err
     }
 
+    if txdata == nil {
+	return "","",fmt.Errorf("check raw fail,txdata is nil") 
+    }
+
     rh,ok := txdata.(*TxDataReShare)
     if !ok {
 	return "","check raw fail,it is not *TxDataReShare",fmt.Errorf("check raw fail,it is not *TxDataReShare")
@@ -111,6 +115,10 @@ func RpcAcceptReShare(raw string) (string, string, error) {
     if err != nil {
 	common.Debug("=====================RpcAcceptReShare,CheckRaw ================","raw",raw,"err",err)
 	return "Failure",err.Error(),err
+    }
+
+    if txdata == nil {
+	return "","",fmt.Errorf("check raw fail,txdata is nil") 
     }
 
     acceptrh,ok := txdata.(*TxDataAcceptReShare)

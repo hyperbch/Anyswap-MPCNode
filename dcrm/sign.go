@@ -85,6 +85,12 @@ func InitAcceptData2(sbd *SignBrocastData,workid int,sender string,ch chan inter
 	return err
     }
     
+    if txdata == nil {
+	res := RpcDcrmRes{Ret: "", Tip: "", Err: fmt.Errorf("check raw fail,txdata is nil")}
+	ch <- res
+	return fmt.Errorf("check raw fail,txdata is nil") 
+    }
+
     sig,ok := txdata.(*TxDataSign)
     if ok {
 	    pub := Keccak256Hash([]byte(strings.ToLower(sig.PubKey + ":" + sig.GroupId))).Hex()
@@ -565,6 +571,10 @@ func RpcAcceptSign(raw string) (string, string, error) {
 	return "Failure",err.Error(),err
     }
 
+    if txdata == nil {
+	return "Failure","",fmt.Errorf("check raw fail,txdata is nil") 
+    }
+
     acceptsig,ok := txdata.(*TxDataAcceptSign)
     if !ok {
 	return "Failure","check raw fail,it is not *TxDataAcceptSign",fmt.Errorf("check raw fail,it is not *TxDataAcceptSign")
@@ -602,6 +612,10 @@ func Sign(raw string) (string, string, error) {
     if err != nil {
 	common.Info("=====================Sign,call CheckRaw finish================","raw",raw,"err",err)
 	return "",err.Error(),err
+    }
+
+    if txdata == nil {
+	return "","",fmt.Errorf("check raw fail,txdata is nil") 
     }
 
     sig,ok := txdata.(*TxDataSign)
